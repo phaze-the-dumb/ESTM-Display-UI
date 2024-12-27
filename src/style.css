@@ -1,0 +1,11 @@
+@font-face{
+  /* Load the Rubik font */
+  font-family: Rubik;
+  src: url('/Rubik-VariableFont_wght.ttf');
+}
+
+body{
+  font-family: Rubik, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #0D1B2A;
+  color: #E0E1DD;
+}
