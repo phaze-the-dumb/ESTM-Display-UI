@@ -45,6 +45,9 @@ let blackout = new BlackoutAnim();
 let nextBracketLoaded = false;
 let currentBracketLoaded = false;
 
+let winningBracket = -1;
+let callWinnerOnNextBracketUpdate = false;
+
 export let startRender = async ( el: HTMLElement ) => {
   blackout.load(el);
 
@@ -73,8 +76,6 @@ export let startRender = async ( el: HTMLElement ) => {
     let json = JSON.parse(msg.data);
     console.log(json);
 
-    console.log(currentBracket);
-
     switch(json.type){
       case 'start-match':
         updateMatchPlayingStatus(true);
@@ -87,6 +88,8 @@ export let startRender = async ( el: HTMLElement ) => {
         nextBracket = json.bracket;
 
         if(currentBracketLoaded)bracketUpdate();
+        if(callWinnerOnNextBracketUpdate)winner();
+
         break;
       case 'current-bracket':
         currentBracketLoaded = true;
@@ -95,7 +98,7 @@ export let startRender = async ( el: HTMLElement ) => {
         if(nextBracketLoaded)bracketUpdate();
         break;
       case 'win-bracket':
-        
+        winner();
         break;
     }
   }
@@ -111,16 +114,20 @@ export let startRender = async ( el: HTMLElement ) => {
         return;
       }
 
+      winningBracket = data.current[2];
+
       currentBracket = { team1: data.current[0], team2: data.current[1] };
       nextBracket = { team1: data.next[0], team2: data.next[1] };
 
       if(currentBracket.team1 && currentBracket.team2){
         blackout.unload();
         activeAnimations.forEach(a => a.unload());
+
+        if(winningBracket)
+          winner();
       } else{
         updateMatchPlayingStatus(true);
       }
-
     })
 }
 
@@ -154,10 +161,23 @@ let bracketUpdate = () => {
   currentBracketLoaded = false;
   nextBracketLoaded = false;
 
+  console.log(nextBracket, currentBracket);
+
   if(currentBracket.team1 && currentBracket.team2){
     blackout.unload();
     activeAnimations.forEach(a => a.unload());
   }
+}
+
+let winner = () => {
+  callWinnerOnNextBracketUpdate = false;
+  if(!nextBracket.team1)return callWinnerOnNextBracketUpdate = true;
+
+  blackout = new BlackoutAnim();
+  blackout.load(document.body);
+
+  activeAnimations.forEach(a => a.unload());
+  updateMatchPlayingStatus(true);
 }
 
 window.onload = () => {
